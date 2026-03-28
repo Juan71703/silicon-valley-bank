@@ -41,8 +41,8 @@ const Dashboard = () => {
   const quickActions = [
     { icon: Building2, label: "Account Info", path: "/account", color: "bg-muted" },
     { icon: Send, label: "Send Money", path: "/transfer", color: "bg-accent/10" },
-    { icon: Receipt, label: "Pay Bills", path: "/transfer", color: "bg-muted" },
-    { icon: FileText, label: "Transactions", path: "/transactions", color: "bg-accent/10" },
+    { icon: ArrowUpRight, label: "Deposit", path: "/transactions", color: "bg-muted" },
+    { icon: FileText, label: "Transaction History", path: "/transactions", color: "bg-accent/10" },
   ];
 
   return (
