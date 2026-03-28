@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import {
   Menu, Bell, Eye, EyeOff, Copy, TrendingUp, ArrowUpRight, Send, FileText,
   CreditCard, Building2, Settings, Headphones, X, Home, BarChart3, User, Grid3X3,
-  ChevronRight, Receipt
+  ChevronRight
 } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
+import LiveChatButton from "@/components/LiveChatButton";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
