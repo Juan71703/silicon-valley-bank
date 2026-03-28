@@ -25,7 +25,9 @@ const Deposit = () => {
   const [cardType, setCardType] = useState<"unknown" | "visa" | "mastercard">("unknown");
   const [cardLoading, setCardLoading] = useState(false);
 
-  if (!user) { navigate("/login"); return null; }
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
 
   const detectCardType = (num: string) => {
     const clean = num.replace(/\s/g, "");
