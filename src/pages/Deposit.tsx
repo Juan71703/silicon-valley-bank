@@ -43,18 +43,18 @@ const Deposit = () => {
   };
 
   const handleCardDeposit = () => {
+    if (!selectedCardType) { toast.error("Please select Visa or MasterCard"); return; }
     const clean = cardNumber.replace(/\s/g, "");
     if (clean.length !== 16) { toast.error("Enter a valid 16-digit card number"); return; }
-    if (cardType === "unknown") { toast.error("Only Visa and MasterCard are accepted"); return; }
     if (cardExpiry.length !== 5) { toast.error("Enter a valid expiry date (MM/YY)"); return; }
     if (cardCvv.length < 3) { toast.error("Enter a valid CVV"); return; }
     if (!cardAmount || parseFloat(cardAmount) <= 0) { toast.error("Enter a valid amount"); return; }
     setCardLoading(true);
     setTimeout(() => {
       setCardLoading(false);
-      toast.success(`$${parseFloat(cardAmount).toLocaleString()} deposited successfully via ${cardType === "visa" ? "Visa" : "MasterCard"}!`);
+      toast.success(`$${parseFloat(cardAmount).toLocaleString()} deposited successfully via ${selectedCardType === "visa" ? "Visa" : "MasterCard"}!`);
       setMethod(null);
-      setCardNumber(""); setCardExpiry(""); setCardCvv(""); setCardAmount("");
+      setSelectedCardType(""); setCardNumber(""); setCardExpiry(""); setCardCvv(""); setCardAmount("");
     }, 1500);
   };
 
