@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import {
   Menu, Bell, Eye, EyeOff, Copy, TrendingUp, ArrowUpRight, Send, FileText,
   CreditCard, Building2, Settings, Headphones, X, Home, BarChart3, User, Grid3X3,
-  ChevronRight, Receipt
+  ChevronRight
 } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
+import LiveChatButton from "@/components/LiveChatButton";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -41,8 +42,8 @@ const Dashboard = () => {
   const quickActions = [
     { icon: Building2, label: "Account Info", path: "/account", color: "bg-muted" },
     { icon: Send, label: "Send Money", path: "/transfer", color: "bg-accent/10" },
-    { icon: Receipt, label: "Pay Bills", path: "/transfer", color: "bg-muted" },
-    { icon: FileText, label: "Transactions", path: "/transactions", color: "bg-accent/10" },
+    { icon: ArrowUpRight, label: "Deposit", path: "/transactions", color: "bg-muted" },
+    { icon: FileText, label: "Transaction History", path: "/transactions", color: "bg-accent/10" },
   ];
 
   return (
@@ -146,9 +147,6 @@ const Dashboard = () => {
               className="text-xs bg-primary-foreground/20 hover:bg-primary-foreground/30 px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
               <ArrowUpRight size={12} /> Transactions
             </button>
-            <button className="text-xs bg-primary-foreground/20 hover:bg-primary-foreground/30 px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
-              <CreditCard size={12} /> Top up
-            </button>
           </div>
         </div>
       </div>
@@ -191,6 +189,7 @@ const Dashboard = () => {
           <NavItem icon={User} label="Profile" onClick={() => navigate("/settings")} />
         </div>
       </nav>
+      <LiveChatButton />
     </div>
   );
 };

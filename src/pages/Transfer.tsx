@@ -5,26 +5,43 @@ import { ArrowLeft, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+
+const countries = [
+  "United States", "United Kingdom", "Canada", "Australia", "Germany", "France",
+  "Nigeria", "Ghana", "South Africa", "India", "China", "Japan", "Brazil",
+  "Mexico", "Italy", "Spain", "Netherlands", "Switzerland", "Sweden", "Norway",
+  "Denmark", "Belgium", "Austria", "Ireland", "New Zealand", "Singapore",
+  "United Arab Emirates", "Saudi Arabia", "Kenya", "Egypt", "Philippines",
+  "Indonesia", "South Korea", "Thailand", "Vietnam", "Malaysia", "Pakistan",
+  "Bangladesh", "Sri Lanka", "Portugal", "Poland", "Czech Republic", "Turkey",
+  "Argentina", "Colombia", "Chile", "Peru", "Israel", "Qatar", "Kuwait"
+];
 
 const Transfer = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [recipient, setRecipient] = useState("");
+  const [country, setCountry] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [routingNumber, setRoutingNumber] = useState("");
   const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
+  const [reason, setReason] = useState("");
 
   useEffect(() => { if (!user) navigate("/login"); }, [user, navigate]);
   if (!user) return null;
 
   const handleTransfer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipient.trim() || !amount.trim()) { toast.error("Please fill in all required fields"); return; }
+    if (!country || !accountName.trim() || !accountNumber.trim() || !routingNumber.trim() || !amount.trim() || !reason.trim()) {
+      toast.error("Please fill in all required fields"); return;
+    }
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) { toast.error("Enter a valid amount"); return; }
     if (amt > user.balance) { toast.error("Insufficient balance"); return; }
-    toast.success(`$${amt.toLocaleString()} sent successfully!`);
-    setRecipient(""); setAmount(""); setNote("");
+    toast.success(`$${amt.toLocaleString()} sent successfully to ${accountName}!`);
+    setCountry(""); setAccountName(""); setAccountNumber(""); setRoutingNumber(""); setAmount(""); setReason("");
   };
 
   return (
@@ -37,8 +54,29 @@ const Transfer = () => {
         <div className="bg-card rounded-2xl shadow-card p-5">
           <form onSubmit={handleTransfer} className="space-y-4">
             <div>
-              <Label className="text-card-foreground">Recipient Account Number</Label>
-              <Input value={recipient} onChange={(e) => setRecipient(e.target.value)} placeholder="Enter account number" className="mt-1" />
+              <Label className="text-card-foreground">Destination Country</Label>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-card-foreground">Account Holder Name</Label>
+              <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="Enter recipient's full name" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-card-foreground">Account Number</Label>
+              <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Enter account number" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-card-foreground">Routing Number</Label>
+              <Input value={routingNumber} onChange={(e) => setRoutingNumber(e.target.value)} placeholder="Enter routing number" className="mt-1" />
             </div>
             <div>
               <Label className="text-card-foreground">Amount (USD)</Label>
@@ -46,8 +84,8 @@ const Transfer = () => {
               <p className="text-xs text-muted-foreground mt-1">Balance: {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(user.balance)}</p>
             </div>
             <div>
-              <Label className="text-card-foreground">Note (optional)</Label>
-              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="What's this for?" className="mt-1" />
+              <Label className="text-card-foreground">Reason for Transfer</Label>
+              <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Family support, Business payment" className="mt-1" />
             </div>
             <Button type="submit" className="w-full"><Send size={18} className="mr-2" /> Send Money</Button>
           </form>
