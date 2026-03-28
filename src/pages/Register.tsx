@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { Eye, EyeOff, UserPlus, ShieldCheck } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 
 const COUNTRIES = [
@@ -33,6 +33,12 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Verification code state
+  const [step, setStep] = useState<"form" | "verify">("form");
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [enteredCode, setEnteredCode] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+
   const captcha = useMemo(() => {
     const a = Math.floor(Math.random() * 20) + 1;
     const b = Math.floor(Math.random() * 20) + 1;
@@ -57,6 +63,18 @@ const Register = () => {
     setError("");
     const err = validate();
     if (err) { setError(err); return; }
+    // Generate a 6-digit verification code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    setStep("verify");
+  };
+
+  const handleVerify = async () => {
+    setVerifyError("");
+    if (enteredCode.trim() !== generatedCode) {
+      setVerifyError("Incorrect verification code. Please try again.");
+      return;
+    }
     setLoading(true);
     const success = await register({
       firstName: form.firstName, lastName: form.lastName, email: form.email,
@@ -66,6 +84,72 @@ const Register = () => {
     if (success) navigate("/dashboard");
     else setError("Registration failed");
   };
+
+  const handleResendCode = () => {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    setEnteredCode("");
+    setVerifyError("");
+  };
+
+  if (step === "verify") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gradient-primary px-4 py-8">
+        <div className="w-full max-w-md animate-fade-in">
+          <div className="flex flex-col items-center mb-6">
+            <img src={svbLogo} alt="SVB" width={56} height={56} className="mb-2" />
+            <h1 className="text-xl font-bold text-primary-foreground">Verify Your Email</h1>
+          </div>
+
+          <div className="bg-card rounded-2xl shadow-elevated p-6">
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <ShieldCheck size={32} className="text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                We've sent a 6-digit verification code to <span className="font-medium text-card-foreground">{form.email}</span>
+              </p>
+            </div>
+
+            {/* Show the code for demo purposes */}
+            <div className="bg-accent/10 border border-primary/20 rounded-lg p-3 mb-4 text-center">
+              <p className="text-xs text-muted-foreground">Demo: Your verification code is</p>
+              <p className="text-2xl font-bold text-primary tracking-[0.3em] mt-1">{generatedCode}</p>
+            </div>
+
+            {verifyError && (
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3 mb-4">{verifyError}</div>
+            )}
+
+            <div className="mb-4">
+              <Label className="text-card-foreground text-xs">Enter Verification Code</Label>
+              <Input
+                type="text"
+                maxLength={6}
+                value={enteredCode}
+                onChange={(e) => setEnteredCode(e.target.value.replace(/\D/g, ""))}
+                className="mt-1 text-center text-xl tracking-[0.3em] font-bold"
+                placeholder="000000"
+              />
+            </div>
+
+            <Button onClick={handleVerify} className="w-full" disabled={loading || enteredCode.length !== 6}>
+              {loading ? "Verifying..." : "Verify & Create Account"}
+            </Button>
+
+            <div className="flex items-center justify-between mt-4">
+              <button onClick={() => setStep("form")} className="text-sm text-muted-foreground hover:text-card-foreground">
+                ← Back
+              </button>
+              <button onClick={handleResendCode} className="text-sm text-primary font-medium hover:underline">
+                Resend Code
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gradient-primary px-4 py-8">

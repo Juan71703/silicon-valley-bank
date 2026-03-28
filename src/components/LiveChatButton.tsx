@@ -28,12 +28,19 @@ const LiveChatButton = () => {
           </div>
         </div>
       )}
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full gradient-primary shadow-elevated flex items-center justify-center text-primary-foreground hover:scale-105 transition-transform"
-      >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
-      </button>
+      <div className="fixed bottom-20 right-4 z-50 flex items-center gap-2">
+        {!open && (
+          <div className="bg-card shadow-elevated rounded-full px-3 py-2 border border-border animate-fade-in">
+            <p className="text-xs font-medium text-card-foreground whitespace-nowrap">How may we help you?</p>
+          </div>
+        )}
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-14 h-14 rounded-full gradient-primary shadow-elevated flex items-center justify-center text-primary-foreground hover:scale-105 transition-transform"
+        >
+          {open ? <X size={22} /> : <MessageCircle size={22} />}
+        </button>
+      </div>
     </>
   );
 };
