@@ -7,41 +7,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-
-const countries = [
-  "United States", "United Kingdom", "Canada", "Australia", "Germany", "France",
-  "Nigeria", "Ghana", "South Africa", "India", "China", "Japan", "Brazil",
-  "Mexico", "Italy", "Spain", "Netherlands", "Switzerland", "Sweden", "Norway",
-  "Denmark", "Belgium", "Austria", "Ireland", "New Zealand", "Singapore",
-  "United Arab Emirates", "Saudi Arabia", "Kenya", "Egypt", "Philippines",
-  "Indonesia", "South Korea", "Thailand", "Vietnam", "Malaysia", "Pakistan",
-  "Bangladesh", "Sri Lanka", "Portugal", "Poland", "Czech Republic", "Turkey",
-  "Argentina", "Colombia", "Chile", "Peru", "Israel", "Qatar", "Kuwait"
-];
+import { COUNTRY_LIST, getCountryBankingFields } from "@/data/countries";
 
 const Transfer = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [country, setCountry] = useState("");
   const [accountName, setAccountName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [routingNumber, setRoutingNumber] = useState("");
+  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
   useEffect(() => { if (!user) navigate("/login"); }, [user, navigate]);
   if (!user) return null;
 
+  const bankingFields = country ? getCountryBankingFields(country) : [];
+
+  const handleCountryChange = (val: string) => {
+    setCountry(val);
+    setDynamicFields({});
+  };
+
   const handleTransfer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!country || !accountName.trim() || !accountNumber.trim() || !routingNumber.trim() || !amount.trim() || !reason.trim()) {
+    if (!country || !accountName.trim() || !amount.trim() || !reason.trim()) {
       toast.error("Please fill in all required fields"); return;
+    }
+    // Check all dynamic fields are filled
+    for (const field of bankingFields) {
+      if (!dynamicFields[field.key]?.trim()) {
+        toast.error(`Please enter ${field.label}`); return;
+      }
     }
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) { toast.error("Enter a valid amount"); return; }
     if (amt > user.balance) { toast.error("Insufficient balance"); return; }
     toast.success(`$${amt.toLocaleString()} sent successfully to ${accountName}!`);
-    setCountry(""); setAccountName(""); setAccountNumber(""); setRoutingNumber(""); setAmount(""); setReason("");
+    setCountry(""); setAccountName(""); setDynamicFields({}); setAmount(""); setReason("");
   };
 
   return (
@@ -55,12 +57,12 @@ const Transfer = () => {
           <form onSubmit={handleTransfer} className="space-y-4">
             <div>
               <Label className="text-card-foreground">Destination Country</Label>
-              <Select value={country} onValueChange={setCountry}>
+              <Select value={country} onValueChange={handleCountryChange}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((c) => (
+                  {COUNTRY_LIST.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
@@ -70,14 +72,20 @@ const Transfer = () => {
               <Label className="text-card-foreground">Account Holder Name</Label>
               <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="Enter recipient's full name" className="mt-1" />
             </div>
-            <div>
-              <Label className="text-card-foreground">Account Number</Label>
-              <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Enter account number" className="mt-1" />
-            </div>
-            <div>
-              <Label className="text-card-foreground">Routing Number</Label>
-              <Input value={routingNumber} onChange={(e) => setRoutingNumber(e.target.value)} placeholder="Enter routing number" className="mt-1" />
-            </div>
+
+            {/* Dynamic country-specific banking fields */}
+            {bankingFields.map((field) => (
+              <div key={field.key}>
+                <Label className="text-card-foreground">{field.label}</Label>
+                <Input
+                  value={dynamicFields[field.key] || ""}
+                  onChange={(e) => setDynamicFields(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                  className="mt-1"
+                />
+              </div>
+            ))}
+
             <div>
               <Label className="text-card-foreground">Amount (USD)</Label>
               <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="mt-1" />

@@ -195,6 +195,8 @@ const Deposit = () => {
             <Button onClick={handleCardDeposit} className="w-full" disabled={cardLoading}>
               {cardLoading ? "Processing..." : "Proceed with Deposit"}
             </Button>
+              </>
+            )}
           </div>
         )}
 

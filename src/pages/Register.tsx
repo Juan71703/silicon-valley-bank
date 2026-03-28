@@ -190,7 +190,7 @@ const Register = () => {
                 <select value={form.country} onChange={(e) => update("country", e.target.value)}
                   className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   <option value="">Select</option>
-                  {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {COUNTRY_LIST.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
