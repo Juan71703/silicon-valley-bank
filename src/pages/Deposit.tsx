@@ -112,33 +112,48 @@ const Deposit = () => {
         {/* Card Payment */}
         {method === "card" && (
           <div className="bg-card rounded-2xl shadow-card p-5 space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex gap-2">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium border ${cardType === "visa" ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground"}`}>
-                  VISA
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium border ${cardType === "mastercard" ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground"}`}>
-                  MasterCard
-                </div>
+            {/* Card type selection */}
+            <div>
+              <Label className="text-card-foreground text-xs mb-2 block">Select Card Type</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCardType("visa")}
+                  className={`rounded-xl p-4 border-2 flex flex-col items-center gap-2 transition-all ${
+                    selectedCardType === "visa"
+                      ? "border-primary bg-primary/5 shadow-card"
+                      : "border-border bg-card hover:border-muted-foreground"
+                  }`}
+                >
+                  <span className="text-2xl font-bold text-primary">VISA</span>
+                  <span className="text-xs text-muted-foreground">Credit / Debit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCardType("mastercard")}
+                  className={`rounded-xl p-4 border-2 flex flex-col items-center gap-2 transition-all ${
+                    selectedCardType === "mastercard"
+                      ? "border-primary bg-primary/5 shadow-card"
+                      : "border-border bg-card hover:border-muted-foreground"
+                  }`}
+                >
+                  <span className="text-2xl font-bold text-primary">MasterCard</span>
+                  <span className="text-xs text-muted-foreground">Credit / Debit</span>
+                </button>
               </div>
             </div>
 
+            {selectedCardType && (
+              <>
             <div>
               <Label className="text-card-foreground text-xs">Card Number</Label>
               <Input
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
-                onChange={(e) => {
-                  const formatted = formatCardNumber(e.target.value);
-                  setCardNumber(formatted);
-                  setCardType(detectCardType(formatted));
-                }}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 className="mt-1"
                 maxLength={19}
               />
-              {cardNumber.replace(/\s/g, "").length >= 2 && cardType === "unknown" && (
-                <p className="text-xs text-destructive mt-1">Only Visa and MasterCard are accepted</p>
-              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
