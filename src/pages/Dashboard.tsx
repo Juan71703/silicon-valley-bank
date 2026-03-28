@@ -146,9 +146,6 @@ const Dashboard = () => {
               className="text-xs bg-primary-foreground/20 hover:bg-primary-foreground/30 px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
               <ArrowUpRight size={12} /> Transactions
             </button>
-            <button className="text-xs bg-primary-foreground/20 hover:bg-primary-foreground/30 px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
-              <CreditCard size={12} /> Top up
-            </button>
           </div>
         </div>
       </div>
