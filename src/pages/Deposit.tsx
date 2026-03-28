@@ -18,11 +18,11 @@ const Deposit = () => {
   const [method, setMethod] = useState<DepositMethod>(null);
 
   // Card state
+  const [selectedCardType, setSelectedCardType] = useState<"" | "visa" | "mastercard">("");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardAmount, setCardAmount] = useState("");
-  const [cardType, setCardType] = useState<"unknown" | "visa" | "mastercard">("unknown");
   const [cardLoading, setCardLoading] = useState(false);
 
   useEffect(() => {
