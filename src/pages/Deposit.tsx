@@ -18,11 +18,11 @@ const Deposit = () => {
   const [method, setMethod] = useState<DepositMethod>(null);
 
   // Card state
+  const [selectedCardType, setSelectedCardType] = useState<"" | "visa" | "mastercard">("");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardAmount, setCardAmount] = useState("");
-  const [cardType, setCardType] = useState<"unknown" | "visa" | "mastercard">("unknown");
   const [cardLoading, setCardLoading] = useState(false);
 
   useEffect(() => {
@@ -30,12 +30,6 @@ const Deposit = () => {
   }, [user, navigate]);
 
   if (!user) return null;
-  const detectCardType = (num: string) => {
-    const clean = num.replace(/\s/g, "");
-    if (/^4/.test(clean)) return "visa";
-    if (/^5[1-5]/.test(clean) || /^2[2-7]/.test(clean)) return "mastercard";
-    return "unknown";
-  };
 
   const formatCardNumber = (value: string) => {
     const clean = value.replace(/\D/g, "").slice(0, 16);
@@ -49,18 +43,18 @@ const Deposit = () => {
   };
 
   const handleCardDeposit = () => {
+    if (!selectedCardType) { toast.error("Please select Visa or MasterCard"); return; }
     const clean = cardNumber.replace(/\s/g, "");
     if (clean.length !== 16) { toast.error("Enter a valid 16-digit card number"); return; }
-    if (cardType === "unknown") { toast.error("Only Visa and MasterCard are accepted"); return; }
     if (cardExpiry.length !== 5) { toast.error("Enter a valid expiry date (MM/YY)"); return; }
     if (cardCvv.length < 3) { toast.error("Enter a valid CVV"); return; }
     if (!cardAmount || parseFloat(cardAmount) <= 0) { toast.error("Enter a valid amount"); return; }
     setCardLoading(true);
     setTimeout(() => {
       setCardLoading(false);
-      toast.success(`$${parseFloat(cardAmount).toLocaleString()} deposited successfully via ${cardType === "visa" ? "Visa" : "MasterCard"}!`);
+      toast.success(`$${parseFloat(cardAmount).toLocaleString()} deposited successfully via ${selectedCardType === "visa" ? "Visa" : "MasterCard"}!`);
       setMethod(null);
-      setCardNumber(""); setCardExpiry(""); setCardCvv(""); setCardAmount("");
+      setSelectedCardType(""); setCardNumber(""); setCardExpiry(""); setCardCvv(""); setCardAmount("");
     }, 1500);
   };
 
@@ -118,33 +112,48 @@ const Deposit = () => {
         {/* Card Payment */}
         {method === "card" && (
           <div className="bg-card rounded-2xl shadow-card p-5 space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex gap-2">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium border ${cardType === "visa" ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground"}`}>
-                  VISA
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium border ${cardType === "mastercard" ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground"}`}>
-                  MasterCard
-                </div>
+            {/* Card type selection */}
+            <div>
+              <Label className="text-card-foreground text-xs mb-2 block">Select Card Type</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCardType("visa")}
+                  className={`rounded-xl p-4 border-2 flex flex-col items-center gap-2 transition-all ${
+                    selectedCardType === "visa"
+                      ? "border-primary bg-primary/5 shadow-card"
+                      : "border-border bg-card hover:border-muted-foreground"
+                  }`}
+                >
+                  <span className="text-2xl font-bold text-primary">VISA</span>
+                  <span className="text-xs text-muted-foreground">Credit / Debit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCardType("mastercard")}
+                  className={`rounded-xl p-4 border-2 flex flex-col items-center gap-2 transition-all ${
+                    selectedCardType === "mastercard"
+                      ? "border-primary bg-primary/5 shadow-card"
+                      : "border-border bg-card hover:border-muted-foreground"
+                  }`}
+                >
+                  <span className="text-2xl font-bold text-primary">MasterCard</span>
+                  <span className="text-xs text-muted-foreground">Credit / Debit</span>
+                </button>
               </div>
             </div>
 
+            {selectedCardType && (
+              <>
             <div>
               <Label className="text-card-foreground text-xs">Card Number</Label>
               <Input
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
-                onChange={(e) => {
-                  const formatted = formatCardNumber(e.target.value);
-                  setCardNumber(formatted);
-                  setCardType(detectCardType(formatted));
-                }}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 className="mt-1"
                 maxLength={19}
               />
-              {cardNumber.replace(/\s/g, "").length >= 2 && cardType === "unknown" && (
-                <p className="text-xs text-destructive mt-1">Only Visa and MasterCard are accepted</p>
-              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -186,6 +195,8 @@ const Deposit = () => {
             <Button onClick={handleCardDeposit} className="w-full" disabled={cardLoading}>
               {cardLoading ? "Processing..." : "Proceed with Deposit"}
             </Button>
+              </>
+            )}
           </div>
         )}
 

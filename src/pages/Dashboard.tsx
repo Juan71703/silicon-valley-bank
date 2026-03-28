@@ -168,6 +168,42 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Account Statistics */}
+      <div className="px-4 mt-6 animate-slide-up">
+        <details className="bg-card rounded-2xl shadow-card overflow-hidden">
+          <summary className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <BarChart3 size={20} className="text-primary" />
+              </div>
+              <span className="font-bold text-card-foreground">Account Statistics</span>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground transition-transform [[open]>&]:rotate-90" />
+          </summary>
+          <div className="px-4 pb-4 space-y-3">
+            <div className="flex items-center justify-between bg-muted rounded-xl p-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Transaction Limit</p>
+                <p className="text-lg font-bold text-card-foreground">$500,000.00</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <TrendingUp size={18} className="text-primary" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between bg-muted rounded-xl p-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Pending Transactions</p>
+                <p className="text-lg font-bold text-card-foreground">$0.00</p>
+                <p className="text-[10px] text-muted-foreground">No pending transactions</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                <FileText size={18} className="text-muted-foreground" />
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
       {/* Footer */}
       <div className="px-4 mt-6 text-center">
         <p className="text-xs text-muted-foreground">© 2026 Silicon Valley Bank. All Rights Reserved.</p>

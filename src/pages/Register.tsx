@@ -7,14 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, UserPlus, ShieldCheck } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 
-const COUNTRIES = [
-  "United States","United Kingdom","Canada","Australia","Germany","France","Japan","India",
-  "Brazil","South Africa","Nigeria","Kenya","Ghana","China","South Korea","Mexico",
-  "Argentina","Italy","Spain","Netherlands","Sweden","Norway","Denmark","Finland",
-  "Switzerland","Austria","Belgium","Ireland","Portugal","New Zealand","Singapore",
-  "Malaysia","Thailand","Indonesia","Philippines","Vietnam","Egypt","Morocco","UAE",
-  "Saudi Arabia","Turkey","Poland","Czech Republic","Romania","Hungary","Colombia","Chile","Peru",
-];
+import { COUNTRY_LIST } from "@/data/countries";
 
 const LANGUAGES = [
   "English","Spanish","French","German","Portuguese","Chinese","Japanese","Korean",
@@ -197,7 +190,7 @@ const Register = () => {
                 <select value={form.country} onChange={(e) => update("country", e.target.value)}
                   className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   <option value="">Select</option>
-                  {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {COUNTRY_LIST.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
