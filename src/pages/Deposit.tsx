@@ -29,6 +29,7 @@ const Deposit = () => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
+  if (!user) return null;
   const detectCardType = (num: string) => {
     const clean = num.replace(/\s/g, "");
     if (/^4/.test(clean)) return "visa";
