@@ -14,6 +14,7 @@ import Cards from "./pages/Cards";
 import Stats from "./pages/Stats";
 import SettingsPage from "./pages/Settings";
 import Contact from "./pages/Contact";
+import Deposit from "./pages/Deposit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/stats" element={<Stats />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/deposit" element={<Deposit />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
