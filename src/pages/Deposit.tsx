@@ -30,12 +30,6 @@ const Deposit = () => {
   }, [user, navigate]);
 
   if (!user) return null;
-  const detectCardType = (num: string) => {
-    const clean = num.replace(/\s/g, "");
-    if (/^4/.test(clean)) return "visa";
-    if (/^5[1-5]/.test(clean) || /^2[2-7]/.test(clean)) return "mastercard";
-    return "unknown";
-  };
 
   const formatCardNumber = (value: string) => {
     const clean = value.replace(/\D/g, "").slice(0, 16);
