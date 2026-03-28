@@ -7,14 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, UserPlus, ShieldCheck } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 
-const COUNTRIES = [
-  "United States","United Kingdom","Canada","Australia","Germany","France","Japan","India",
-  "Brazil","South Africa","Nigeria","Kenya","Ghana","China","South Korea","Mexico",
-  "Argentina","Italy","Spain","Netherlands","Sweden","Norway","Denmark","Finland",
-  "Switzerland","Austria","Belgium","Ireland","Portugal","New Zealand","Singapore",
-  "Malaysia","Thailand","Indonesia","Philippines","Vietnam","Egypt","Morocco","UAE",
-  "Saudi Arabia","Turkey","Poland","Czech Republic","Romania","Hungary","Colombia","Chile","Peru",
-];
+import { COUNTRY_LIST } from "@/data/countries";
 
 const LANGUAGES = [
   "English","Spanish","French","German","Portuguese","Chinese","Japanese","Korean",
