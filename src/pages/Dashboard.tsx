@@ -189,6 +189,7 @@ const Dashboard = () => {
           <NavItem icon={User} label="Profile" onClick={() => navigate("/settings")} />
         </div>
       </nav>
+      <LiveChatButton />
     </div>
   );
 };
