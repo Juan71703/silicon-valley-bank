@@ -1,10 +1,12 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft, CreditCard, Wifi, Lock } from "lucide-react";
 
 const Cards = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   useEffect(() => { if (!user) navigate("/login"); }, [user, navigate]);
   if (!user) return null;
@@ -13,7 +15,7 @@ const Cards = () => {
     <div className="min-h-screen bg-background">
       <header className="gradient-primary px-4 py-4 flex items-center gap-3 text-primary-foreground">
         <button onClick={() => navigate(-1)}><ArrowLeft size={22} /></button>
-        <h1 className="font-bold text-lg">My Cards</h1>
+        <h1 className="font-bold text-lg">{t("page.cards")}</h1>
       </header>
       <div className="px-4 py-6 animate-fade-in">
         <div className="gradient-primary rounded-2xl p-6 text-primary-foreground shadow-elevated aspect-[1.6/1] flex flex-col justify-between">
@@ -48,7 +50,7 @@ const Cards = () => {
           ))}
         </div>
       </div>
-      <footer className="text-center text-xs text-muted-foreground py-4">© 2026 Silicon Valley Bank. All Rights Reserved.</footer>
+      <footer className="text-center text-xs text-muted-foreground py-4">{t("footer.copyright")}</footer>
     </div>
   );
 };

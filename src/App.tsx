@@ -22,29 +22,31 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/account" element={<AccountInfo />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/transfer" element={<Transfer />} />
-            <Route path="/cards" element={<Cards />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/deposit" element={<Deposit />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/account" element={<AccountInfo />} />
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/transfer" element={<Transfer />} />
+              <Route path="/cards" element={<Cards />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/deposit" element={<Deposit />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 
