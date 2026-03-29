@@ -16,9 +16,10 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, remember?: boolean) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   logout: () => void;
+  updateAvatar: (dataUrl: string) => void;
 }
 
 export interface RegisterData {
@@ -49,16 +50,20 @@ const MOCK_USERS: (User & { password: string })[] = [
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const stored = sessionStorage.getItem("svb_user");
+    const stored = sessionStorage.getItem("svb_user") || localStorage.getItem("svb_user");
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, remember = false) => {
     const found = MOCK_USERS.find((u) => u.email === email && u.password === password);
     if (found) {
       const { password: _, ...userData } = found;
       setUser(userData);
-      sessionStorage.setItem("svb_user", JSON.stringify(userData));
+      if (remember) {
+        localStorage.setItem("svb_user", JSON.stringify(userData));
+      } else {
+        sessionStorage.setItem("svb_user", JSON.stringify(userData));
+      }
       return true;
     }
     return false;
@@ -85,10 +90,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(() => {
     setUser(null);
     sessionStorage.removeItem("svb_user");
+    localStorage.removeItem("svb_user");
+  }, []);
+
+  const updateAvatar = useCallback((dataUrl: string) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, avatar: dataUrl };
+      const stored = sessionStorage.getItem("svb_user");
+      if (stored) sessionStorage.setItem("svb_user", JSON.stringify(updated));
+      const lstored = localStorage.getItem("svb_user");
+      if (lstored) localStorage.setItem("svb_user", JSON.stringify(updated));
+      return updated;
+    });
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );
