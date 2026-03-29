@@ -31,7 +31,7 @@ export interface RegisterData {
   language: string;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const MOCK_USERS: (User & { password: string })[] = [
   {
