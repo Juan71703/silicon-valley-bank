@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 
@@ -13,6 +14,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,7 @@ const Login = () => {
       return;
     }
     setLoading(true);
-    const success = await login(email, password);
+    const success = await login(email, password, rememberMe);
     setLoading(false);
     if (success) {
       navigate("/dashboard");
@@ -83,6 +85,18 @@ const Login = () => {
                 </button>
               </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                Remember Me
+              </Label>
+            </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : <><LogIn size={18} className="mr-2" /> Sign In</>}
             </Button>

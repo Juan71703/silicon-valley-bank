@@ -1,8 +1,14 @@
 import { MessageCircle, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const LiveChatButton = () => {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-live-chat", handler);
+    return () => window.removeEventListener("open-live-chat", handler);
+  }, []);
 
   return (
     <>

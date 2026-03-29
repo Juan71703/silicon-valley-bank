@@ -1,20 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   Menu, Bell, Eye, EyeOff, Copy, TrendingUp, ArrowUpRight, Send, FileText,
   CreditCard, Building2, Settings, Headphones, X, Home, BarChart3, User, Grid3X3,
-  ChevronRight
+  ChevronRight, ChevronDown, Plus, Globe, MessageCircle
 } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 import LiveChatButton from "@/components/LiveChatButton";
 
+const LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "fr", label: "Français" },
+  { code: "es", label: "Español" },
+  { code: "de", label: "Deutsch" },
+  { code: "pt", label: "Português" },
+  { code: "zh", label: "中文" },
+  { code: "ar", label: "العربية" },
+  { code: "hi", label: "हिन्दी" },
+];
+
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateAvatar } = useAuth();
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState(() => localStorage.getItem("svb_lang") || "en");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
@@ -29,6 +44,32 @@ const Dashboard = () => {
   const formattedBalance = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(user.balance);
   const timeStr = currentTime.toLocaleTimeString("en-US", { hour12: false });
   const dateStr = currentTime.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validTypes = ["image/jpeg", "image/png"];
+    if (!validTypes.includes(file.type)) {
+      alert("Only JPEG and PNG images are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image must be less than 5MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      updateAvatar(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLangChange = (code: string) => {
+    setCurrentLang(code);
+    localStorage.setItem("svb_lang", code);
+    setLangMenuOpen(false);
+  };
 
   const menuItems = [
     { icon: Building2, label: "Account Overview", path: "/account" },
@@ -45,6 +86,8 @@ const Dashboard = () => {
     { icon: ArrowUpRight, label: "Deposit", path: "/deposit", color: "bg-muted" },
     { icon: FileText, label: "Transaction History", path: "/transactions", color: "bg-accent/10" },
   ];
+
+  const selectedLangLabel = LANGUAGES.find(l => l.code === currentLang)?.label || "English";
 
   return (
     <div className="min-h-screen bg-background pb-24 relative">
@@ -89,12 +132,44 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {/* Language Switcher */}
+          <div className="relative">
+            <button onClick={() => setLangMenuOpen(!langMenuOpen)} className="text-muted-foreground hover:text-primary transition-colors">
+              <Globe size={20} />
+            </button>
+            {langMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-40 bg-card rounded-xl shadow-elevated border border-border z-50 py-1 animate-fade-in">
+                  {LANGUAGES.map(l => (
+                    <button key={l.code} onClick={() => handleLangChange(l.code)}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${currentLang === l.code ? "text-primary font-semibold" : "text-card-foreground"}`}>
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <button className="relative text-muted-foreground">
             <Bell size={20} />
             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-destructive" />
           </button>
-          <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-            {user.firstName[0]}
+          {/* Profile Avatar with Upload */}
+          <div className="relative">
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={handleAvatarUpload} />
+            <button onClick={() => fileInputRef.current?.click()} className="relative group">
+              {user.avatar ? (
+                <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
+                  {user.firstName[0]}
+                </div>
+              )}
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                <Plus size={10} className="text-primary-foreground" />
+              </div>
+            </button>
           </div>
         </div>
       </header>
@@ -103,8 +178,10 @@ const Dashboard = () => {
       <div className="gradient-primary mx-4 mt-4 rounded-2xl p-5 text-primary-foreground animate-fade-in">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center text-sm font-bold">
-              {user.firstName[0]}
+            <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center text-sm font-bold overflow-hidden">
+              {user.avatar ? (
+                <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+              ) : user.firstName[0]}
             </div>
             <div>
               <p className="text-sm opacity-80">{greeting}</p>
@@ -168,19 +245,27 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Account Statistics */}
+      {/* Account Statistics - proper dropdown below button */}
       <div className="px-4 mt-6 animate-slide-up">
-        <details className="bg-card rounded-2xl shadow-card overflow-hidden">
-          <summary className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <BarChart3 size={20} className="text-primary" />
-              </div>
-              <span className="font-bold text-card-foreground">Account Statistics</span>
+        <button
+          onClick={() => setStatsOpen(!statsOpen)}
+          className="w-full bg-card rounded-2xl shadow-card p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <BarChart3 size={20} className="text-primary" />
             </div>
-            <ChevronRight size={18} className="text-muted-foreground transition-transform [[open]>&]:rotate-90" />
-          </summary>
-          <div className="px-4 pb-4 space-y-3">
+            <span className="font-bold text-card-foreground">Account Statistics</span>
+          </div>
+          <ChevronDown
+            size={18}
+            className={`text-muted-foreground transition-transform duration-300 ${statsOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${statsOpen ? "max-h-60 opacity-100 mt-2" : "max-h-0 opacity-0 mt-0"}`}
+        >
+          <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
             <div className="flex items-center justify-between bg-muted rounded-xl p-3">
               <div>
                 <p className="text-xs text-muted-foreground">Transaction Limit</p>
@@ -201,7 +286,27 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-        </details>
+        </div>
+      </div>
+
+      {/* Need Help? Contact Support */}
+      <div className="px-4 mt-4 animate-slide-up">
+        <button
+          onClick={() => {
+            // Trigger the live chat by dispatching a custom event
+            window.dispatchEvent(new CustomEvent("open-live-chat"));
+          }}
+          className="w-full bg-card rounded-2xl shadow-card p-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <MessageCircle size={20} className="text-primary" />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-card-foreground text-sm">Need Help? Contact Support</p>
+            <p className="text-xs text-muted-foreground">Chat with our support team</p>
+          </div>
+          <ChevronRight size={18} className="ml-auto text-muted-foreground" />
+        </button>
       </div>
 
       {/* Footer */}
@@ -214,7 +319,6 @@ const Dashboard = () => {
         <div className="flex items-center justify-around py-2 relative max-w-md mx-auto">
           <NavItem icon={Home} label="Home" active onClick={() => navigate("/dashboard")} />
           <NavItem icon={BarChart3} label="Stats" onClick={() => navigate("/stats")} />
-          {/* Floating center button */}
           <div className="relative -top-5">
             <button className="w-14 h-14 rounded-full gradient-primary shadow-elevated flex items-center justify-center text-primary-foreground"
               onClick={() => setMenuOpen(true)}>
