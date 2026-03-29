@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight, CreditCard } from "lucide-react";
@@ -15,6 +16,7 @@ const MOCK_TRANSACTIONS = [
 
 const Transactions = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   useEffect(() => { if (!user) navigate("/login"); }, [user, navigate]);
   if (!user) return null;
@@ -23,7 +25,7 @@ const Transactions = () => {
     <div className="min-h-screen bg-background">
       <header className="gradient-primary px-4 py-4 flex items-center gap-3 text-primary-foreground">
         <button onClick={() => navigate(-1)}><ArrowLeft size={22} /></button>
-        <h1 className="font-bold text-lg">Transactions</h1>
+        <h1 className="font-bold text-lg">{t("page.transactions")}</h1>
       </header>
       <div className="px-4 py-4 space-y-2 animate-fade-in">
         {MOCK_TRANSACTIONS.map((tx) => (
@@ -43,7 +45,7 @@ const Transactions = () => {
           </div>
         ))}
       </div>
-      <footer className="text-center text-xs text-muted-foreground py-4">© 2026 Silicon Valley Bank. All Rights Reserved.</footer>
+      <footer className="text-center text-xs text-muted-foreground py-4">{t("footer.copyright")}</footer>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import svbLogo from "@/assets/svb-logo.png";
 
 const Login = () => {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,18 +23,11 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email.trim() || !password.trim()) {
-      setError("Please fill in all fields");
-      return;
-    }
+    if (!email.trim() || !password.trim()) { setError(t("login.fillAll")); return; }
     setLoading(true);
     const success = await login(email, password, rememberMe);
     setLoading(false);
-    if (success) {
-      navigate("/dashboard");
-    } else {
-      setError("Invalid email or password");
-    }
+    if (success) { navigate("/dashboard"); } else { setError(t("login.invalid")); }
   };
 
   return (
@@ -45,74 +40,45 @@ const Login = () => {
         </div>
 
         <div className="bg-card rounded-2xl shadow-elevated p-6">
-          <h2 className="text-xl font-semibold text-card-foreground mb-1">Welcome Back</h2>
-          <p className="text-muted-foreground text-sm mb-6">Sign in to your account</p>
+          <h2 className="text-xl font-semibold text-card-foreground mb-1">{t("login.title")}</h2>
+          <p className="text-muted-foreground text-sm mb-6">{t("login.subtitle")}</p>
 
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3 mb-4">
-              {error}
-            </div>
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3 mb-4">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-card-foreground">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1"
-              />
+              <Label htmlFor="email" className="text-card-foreground">{t("login.email")}</Label>
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label htmlFor="password" className="text-card-foreground">Password</Label>
+              <Label htmlFor="password" className="text-card-foreground">{t("login.password")}</Label>
               <div className="relative mt-1">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked === true)}
-              />
-              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                Remember Me
-              </Label>
+              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked === true)} />
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t("login.rememberMe")}</Label>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : <><LogIn size={18} className="mr-2" /> Sign In</>}
+              {loading ? "..." : <><LogIn size={18} className="mr-2" /> {t("login.signIn")}</>}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary font-medium hover:underline">
-              Sign Up
-            </Link>
+            {t("login.noAccount")}{" "}
+            <Link to="/register" className="text-primary font-medium hover:underline">{t("login.register")}</Link>
           </p>
         </div>
 
-        <p className="text-center text-xs text-primary-foreground/50 mt-6">
-          © 2026 Silicon Valley Bank. All Rights Reserved.
-        </p>
+        <p className="text-center text-xs text-primary-foreground/50 mt-6">{t("footer.copyright")}</p>
       </div>
     </div>
   );

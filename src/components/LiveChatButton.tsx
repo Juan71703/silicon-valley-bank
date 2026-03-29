@@ -1,8 +1,10 @@
 import { MessageCircle, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const LiveChatButton = () => {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handler = () => setOpen(true);
@@ -37,7 +39,7 @@ const LiveChatButton = () => {
       <div className="fixed bottom-20 right-4 z-50 flex items-center gap-2">
         {!open && (
           <div className="bg-card shadow-elevated rounded-full px-3 py-2 border border-border animate-fade-in">
-            <p className="text-xs font-medium text-card-foreground whitespace-nowrap">How may we help you?</p>
+            <p className="text-xs font-medium text-card-foreground whitespace-nowrap">{t("chat.help")}</p>
           </div>
         )}
         <button
