@@ -5,10 +5,19 @@ import { useNavigate } from "react-router-dom";
 import {
   Menu, Bell, Eye, EyeOff, Copy, TrendingUp, ArrowUpRight, Send, FileText,
   CreditCard, Building2, Settings, Headphones, X, Home, BarChart3, User, Grid3X3,
-  ChevronRight, Plus, Globe, MessageCircle
+  ChevronRight, Plus, Globe, MessageCircle, ArrowDownLeft
 } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 import LiveChatButton from "@/components/LiveChatButton";
+
+const MOCK_TRANSACTIONS = [
+  { id: "1", type: "credit" as const, desc: "Salary Deposit", amount: 5200, date: "2026-03-27", status: "Completed" },
+  { id: "2", type: "debit" as const, desc: "Netflix Subscription", amount: -15.99, date: "2026-03-26", status: "Completed" },
+  { id: "3", type: "debit" as const, desc: "Transfer to Jane Doe", amount: -500, date: "2026-03-25", status: "Pending" },
+  { id: "4", type: "credit" as const, desc: "Refund - Amazon", amount: 42.5, date: "2026-03-24", status: "Completed" },
+  { id: "5", type: "debit" as const, desc: "Electricity Bill", amount: -120, date: "2026-03-23", status: "Completed" },
+  { id: "6", type: "credit" as const, desc: "Freelance Payment", amount: 1800, date: "2026-03-21", status: "Completed" },
+];
 
 const Dashboard = () => {
   const { user, logout, updateAvatar } = useAuth();
@@ -18,6 +27,7 @@ const Dashboard = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -93,6 +103,35 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Notification Panel */}
+      {notifOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setNotifOpen(false)} />
+          <div className="relative w-full max-w-sm bg-card h-full shadow-elevated animate-fade-in overflow-y-auto">
+            <div className="gradient-primary p-4 flex items-center justify-between text-primary-foreground sticky top-0 z-10">
+              <h2 className="font-bold">{t("notif.title")}</h2>
+              <button onClick={() => setNotifOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="p-4 space-y-2">
+              {MOCK_TRANSACTIONS.map((tx) => (
+                <div key={tx.id} className="bg-muted rounded-xl p-3 flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-green-500/10" : "bg-destructive/10"}`}>
+                    {tx.type === "credit" ? <ArrowDownLeft size={16} className="text-green-500" /> : <ArrowUpRight size={16} className="text-destructive" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-card-foreground truncate">{tx.desc}</p>
+                    <p className="text-[10px] text-muted-foreground">{tx.date} · <span className={tx.status === "Pending" ? "text-amber-500" : "text-green-500"}>{tx.status}</span></p>
+                  </div>
+                  <p className={`text-sm font-bold ${tx.type === "credit" ? "text-green-500" : "text-destructive"}`}>
+                    {tx.type === "credit" ? "+" : ""}${Math.abs(tx.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 bg-card shadow-card">
         <div className="flex items-center gap-2">
@@ -122,7 +161,7 @@ const Dashboard = () => {
               </>
             )}
           </div>
-          <button className="relative text-muted-foreground">
+          <button onClick={() => setNotifOpen(true)} className="relative text-muted-foreground">
             <Bell size={20} />
             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-destructive" />
           </button>
@@ -211,32 +250,32 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Account Statistics - Always visible */}
+      {/* Account Statistics - Blue bg, white text, always visible */}
       <div className="px-4 mt-6 animate-slide-up">
-        <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
+        <div className="bg-primary rounded-2xl shadow-card p-4 space-y-3">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <BarChart3 size={20} className="text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+              <BarChart3 size={20} className="text-primary-foreground" />
             </div>
-            <span className="font-bold text-card-foreground">{t("stats.title")}</span>
+            <span className="font-bold text-lg text-primary-foreground">{t("stats.title")}</span>
           </div>
-          <div className="flex items-center justify-between bg-muted rounded-xl p-3">
+          <div className="flex items-center justify-between bg-primary-foreground/10 rounded-xl p-3">
             <div>
-              <p className="text-xs text-muted-foreground">{t("stats.transactionLimit")}</p>
-              <p className="text-lg font-bold text-card-foreground">$500,000.00</p>
+              <p className="text-xs text-primary-foreground/70">{t("stats.transactionLimit")}</p>
+              <p className="text-xl font-bold text-primary-foreground">$500,000.00</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <TrendingUp size={18} className="text-primary" />
+            <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+              <TrendingUp size={18} className="text-primary-foreground" />
             </div>
           </div>
-          <div className="flex items-center justify-between bg-muted rounded-xl p-3">
+          <div className="flex items-center justify-between bg-primary-foreground/10 rounded-xl p-3">
             <div>
-              <p className="text-xs text-muted-foreground">{t("stats.pendingTransactions")}</p>
-              <p className="text-lg font-bold text-card-foreground">$0.00</p>
-              <p className="text-[10px] text-muted-foreground">{t("stats.noPending")}</p>
+              <p className="text-xs text-primary-foreground/70">{t("stats.pendingTransactions")}</p>
+              <p className="text-xl font-bold text-primary-foreground">$0.00</p>
+              <p className="text-[10px] text-primary-foreground/60">{t("stats.noPending")}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-              <FileText size={18} className="text-muted-foreground" />
+            <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+              <FileText size={18} className="text-primary-foreground" />
             </div>
           </div>
         </div>
