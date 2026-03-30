@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Send, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Send, CheckCircle, AlertCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { COUNTRY_LIST, getCountryBankingFields } from "@/data/countries";
 
-type TransferStep = "form" | "confirm" | "otp" | "complete";
+type TransferStep = "form" | "confirm" | "pin" | "otp" | "complete";
 
 const Transfer = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [step, setStep] = useState<TransferStep>("form");
   const [country, setCountry] = useState("");
@@ -20,6 +22,7 @@ const Transfer = () => {
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
+  const [pin, setPin] = useState("");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
 
@@ -39,28 +42,42 @@ const Transfer = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!country || !accountName.trim() || !amount.trim() || !reason.trim()) {
-      toast.error("Please fill in all required fields"); return;
+      toast.error(t("transfer.fillFields")); return;
     }
     for (const field of bankingFields) {
       if (!dynamicFields[field.key]?.trim()) {
-        toast.error(`Please enter ${field.label}`); return;
+        toast.error(`${t("transfer.pleaseEnter")} ${field.label}`); return;
       }
     }
-    if (isNaN(amt) || amt <= 0) { toast.error("Enter a valid amount"); return; }
-    if (total > user.balance) { toast.error("Insufficient balance"); return; }
+    if (isNaN(amt) || amt <= 0) { toast.error(t("transfer.invalidAmount")); return; }
+    if (total > user.balance) { toast.error(t("transfer.insufficientBalance")); return; }
     setStep("confirm");
   };
 
   const handleConfirm = () => {
+    if (!user.pin) {
+      toast.error(t("transfer.setPinFirst"));
+      return;
+    }
+    setStep("pin");
+  };
+
+  const handlePinVerify = () => {
+    if (pin !== user.pin) {
+      toast.error(t("transfer.invalidPin"));
+      setPin("");
+      return;
+    }
+    // Generate OTP
     const code = String(Math.floor(100000 + Math.random() * 900000));
     setGeneratedOtp(code);
-    toast.info(`Verification code sent to ${user.email}: ${code}`);
+    toast.info(`${t("transfer.otpSentTo")} ${user.email}`);
     setStep("otp");
   };
 
   const handleOtpVerify = () => {
     if (otp !== generatedOtp) {
-      toast.error("Invalid verification code");
+      toast.error(t("transfer.invalidOtp"));
       return;
     }
     setStep("complete");
@@ -68,23 +85,23 @@ const Transfer = () => {
 
   const handleReset = () => {
     setStep("form");
-    setCountry(""); setAccountName(""); setDynamicFields({}); setAmount(""); setReason(""); setOtp("");
+    setCountry(""); setAccountName(""); setDynamicFields({}); setAmount(""); setReason(""); setPin(""); setOtp("");
   };
 
   return (
     <div className="min-h-screen bg-background">
       <header className="gradient-primary px-4 py-4 flex items-center gap-3 text-primary-foreground">
         <button onClick={() => step === "form" ? navigate(-1) : setStep("form")}><ArrowLeft size={22} /></button>
-        <h1 className="font-bold text-lg">Send Money</h1>
+        <h1 className="font-bold text-lg">{t("page.transfer")}</h1>
       </header>
       <div className="px-4 py-6 animate-fade-in">
         {step === "form" && (
           <div className="bg-card rounded-2xl shadow-card p-5">
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <Label className="text-card-foreground">Destination Country</Label>
+                <Label className="text-card-foreground">{t("transfer.destCountry")}</Label>
                 <Select value={country} onValueChange={handleCountryChange}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select country" /></SelectTrigger>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder={t("transfer.country")} /></SelectTrigger>
                   <SelectContent>
                     {COUNTRY_LIST.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -93,8 +110,8 @@ const Transfer = () => {
                 </Select>
               </div>
               <div>
-                <Label className="text-card-foreground">Account Holder Name</Label>
-                <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="Enter recipient's full name" className="mt-1" />
+                <Label className="text-card-foreground">{t("transfer.recipient")}</Label>
+                <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder={t("transfer.recipientPlaceholder")} className="mt-1" />
               </div>
               {bankingFields.map((field) => (
                 <div key={field.key}>
@@ -108,40 +125,65 @@ const Transfer = () => {
                 </div>
               ))}
               <div>
-                <Label className="text-card-foreground">Amount (USD)</Label>
+                <Label className="text-card-foreground">{t("transfer.amount")}</Label>
                 <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="mt-1" />
-                <p className="text-xs text-muted-foreground mt-1">Balance: {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(user.balance)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("balance.available")}: {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(user.balance)}</p>
               </div>
               <div>
-                <Label className="text-card-foreground">Reason for Transfer</Label>
-                <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Family support, Business payment" className="mt-1" />
+                <Label className="text-card-foreground">{t("transfer.reason")}</Label>
+                <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("transfer.reasonPlaceholder")} className="mt-1" />
               </div>
-              <Button type="submit" className="w-full"><Send size={18} className="mr-2" /> Continue</Button>
+              <Button type="submit" className="w-full"><Send size={18} className="mr-2" /> {t("transfer.continue")}</Button>
             </form>
           </div>
         )}
 
         {step === "confirm" && (
           <div className="bg-card rounded-2xl shadow-card p-5 space-y-4">
-            <h2 className="font-bold text-card-foreground text-lg">Confirm Transfer</h2>
-            <p className="text-sm text-muted-foreground">Please review the details below before proceeding.</p>
+            <h2 className="font-bold text-card-foreground text-lg">{t("transfer.confirm")}</h2>
+            <p className="text-sm text-muted-foreground">{t("transfer.reviewDetails")}</p>
             <div className="space-y-2 bg-muted rounded-xl p-4">
-              <DetailRow label="Recipient" value={accountName} />
-              <DetailRow label="Country" value={country} />
+              <DetailRow label={t("transfer.recipient")} value={accountName} />
+              <DetailRow label={t("transfer.destCountry")} value={country} />
               {bankingFields.map(f => (
                 <DetailRow key={f.key} label={f.label} value={dynamicFields[f.key] || ""} />
               ))}
-              <DetailRow label="Amount" value={`$${amt.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} />
-              <DetailRow label="Transfer Fee" value={`$${fee.toFixed(2)}`} />
+              <DetailRow label={t("transfer.amount")} value={`$${amt.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} />
+              <DetailRow label={t("transfer.fee")} value={`$${fee.toFixed(2)}`} />
               <div className="border-t border-border pt-2">
-                <DetailRow label="Total" value={`$${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} bold />
+                <DetailRow label={t("transfer.total")} value={`$${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} bold />
               </div>
-              <DetailRow label="Reason" value={reason} />
+              <DetailRow label={t("transfer.reason")} value={reason} />
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => setStep("form")}>Edit</Button>
-              <Button className="flex-1" onClick={handleConfirm}>Confirm & Verify</Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep("form")}>{t("transfer.edit")}</Button>
+              <Button className="flex-1" onClick={handleConfirm}>{t("transfer.confirmProceed")}</Button>
             </div>
+          </div>
+        )}
+
+        {step === "pin" && (
+          <div className="bg-card rounded-2xl shadow-card p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Lock size={20} className="text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-card-foreground">{t("transfer.enterPin")}</h2>
+                <p className="text-xs text-muted-foreground">{t("transfer.enterPinDesc")}</p>
+              </div>
+            </div>
+            <Input
+              type="password"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="••••"
+              className="text-center text-2xl tracking-[0.5em]"
+              maxLength={4}
+            />
+            <Button className="w-full" onClick={handlePinVerify} disabled={pin.length !== 4}>
+              {t("transfer.verifyPin")}
+            </Button>
           </div>
         )}
 
@@ -152,23 +194,27 @@ const Transfer = () => {
                 <AlertCircle size={20} className="text-primary" />
               </div>
               <div>
-                <h2 className="font-bold text-card-foreground">Security Verification</h2>
-                <p className="text-xs text-muted-foreground">Enter the 6-digit code sent to your email</p>
+                <h2 className="font-bold text-card-foreground">{t("transfer.securityVerification")}</h2>
+                <p className="text-xs text-muted-foreground">{t("transfer.otpDesc")}</p>
               </div>
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
+              <p className="text-xs text-amber-700 font-medium">{t("transfer.contactAdmin")}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{t("transfer.adminOtpNote")}</p>
             </div>
             <Input
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="Enter 6-digit code"
+              placeholder={t("transfer.enterOtpPlaceholder")}
               className="text-center text-lg tracking-widest"
               maxLength={6}
             />
             <Button className="w-full" onClick={handleOtpVerify} disabled={otp.length !== 6}>
-              Verify & Send
+              {t("transfer.verify")}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Didn't receive it?{" "}
-              <button className="text-primary font-medium" onClick={handleConfirm}>Resend code</button>
+              {t("transfer.needHelp")}{" "}
+              <button className="text-primary font-medium" onClick={() => window.dispatchEvent(new CustomEvent("open-live-chat"))}>{t("transfer.contactSupport")}</button>
             </p>
           </div>
         )}
@@ -178,20 +224,20 @@ const Transfer = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
               <CheckCircle size={32} className="text-primary" />
             </div>
-            <h2 className="font-bold text-card-foreground text-lg">Transaction Pending Review</h2>
+            <h2 className="font-bold text-card-foreground text-lg">{t("transfer.success")}</h2>
             <p className="text-sm text-muted-foreground">
-              Your transfer of <span className="font-semibold text-card-foreground">${amt.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span> to{" "}
-              <span className="font-semibold text-card-foreground">{accountName}</span> is being processed.
+              {t("transfer.successDesc")} <span className="font-semibold text-card-foreground">${amt.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span> {t("transfer.to")}{" "}
+              <span className="font-semibold text-card-foreground">{accountName}</span> {t("transfer.pending")}
             </p>
             <div className="bg-muted rounded-xl p-3 text-xs text-muted-foreground">
               Reference: TXN-{Date.now().toString(36).toUpperCase()}
             </div>
-            <Button className="w-full" onClick={handleReset}>Make Another Transfer</Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
+            <Button className="w-full" onClick={handleReset}>{t("transfer.makeAnother")}</Button>
+            <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard")}>{t("transfer.backHome")}</Button>
           </div>
         )}
       </div>
-      <footer className="text-center text-xs text-muted-foreground py-4">© 2026 Silicon Valley Bank. All Rights Reserved.</footer>
+      <footer className="text-center text-xs text-muted-foreground py-4">{t("footer.copyright")}</footer>
     </div>
   );
 };

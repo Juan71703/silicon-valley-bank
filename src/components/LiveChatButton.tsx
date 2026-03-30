@@ -2,14 +2,34 @@ import { MessageCircle, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const JIVOCHAT_WIDGET_ID = ""; // Add your JivoChat widget ID here
+
 const LiveChatButton = () => {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = () => {
+      // If JivoChat is loaded, open it; otherwise open built-in chat
+      if ((window as any).jivo_api) {
+        (window as any).jivo_api.open();
+      } else {
+        setOpen(true);
+      }
+    };
     window.addEventListener("open-live-chat", handler);
     return () => window.removeEventListener("open-live-chat", handler);
+  }, []);
+
+  // Load JivoChat script
+  useEffect(() => {
+    if (JIVOCHAT_WIDGET_ID && !document.getElementById("jivo-script")) {
+      const script = document.createElement("script");
+      script.id = "jivo-script";
+      script.src = `//code.jivosite.com/widget/${JIVOCHAT_WIDGET_ID}`;
+      script.async = true;
+      document.head.appendChild(script);
+    }
   }, []);
 
   return (
@@ -43,7 +63,13 @@ const LiveChatButton = () => {
           </div>
         )}
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            if ((window as any).jivo_api) {
+              (window as any).jivo_api.open();
+            } else {
+              setOpen(!open);
+            }
+          }}
           className="w-14 h-14 rounded-full gradient-primary shadow-elevated flex items-center justify-center text-primary-foreground hover:scale-105 transition-transform"
         >
           {open ? <X size={22} /> : <MessageCircle size={22} />}
