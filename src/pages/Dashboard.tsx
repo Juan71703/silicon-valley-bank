@@ -95,7 +95,7 @@ const Dashboard = () => {
                 </button>
               ))}
             </nav>
-            <button onClick={() => { logout(); navigate("/login"); }}
+            <button onClick={async () => { await logout(); navigate("/login"); }}
               className="mt-4 w-full py-2 rounded-lg bg-destructive/10 text-destructive text-sm font-medium hover:bg-destructive/20 transition-colors">
               {t("menu.signOut")}
             </button>
