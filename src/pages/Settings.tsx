@@ -64,11 +64,11 @@ const SettingsPage = () => {
     setActivePanel(null);
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) { toast.error(t("contact.fillAll")); return; }
     if (newPassword !== confirmPassword) { toast.error(t("settings.passwordMismatch")); return; }
     if (newPassword.length < 8) { toast.error(t("settings.passwordTooShort")); return; }
-    const success = updatePassword(oldPassword, newPassword);
+    const success = await updatePassword(oldPassword, newPassword);
     if (success) {
       toast.success(t("settings.passwordChanged"));
       setOldPassword(""); setNewPassword(""); setConfirmPassword("");
