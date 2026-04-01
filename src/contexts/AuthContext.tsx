@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export interface User {
   id: string;
@@ -18,16 +20,17 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, remember?: boolean) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
-  logout: () => void;
+  loading: boolean;
+  login: (email: string, password: string, remember?: boolean) => Promise<{ success: boolean; error?: string }>;
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  verifyOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
+  resendVerification: (email: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   updateAvatar: (dataUrl: string) => void;
   updateUser: (updates: Partial<User>) => void;
-  updatePassword: (oldPassword: string, newPassword: string) => boolean;
+  updatePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
   setTransactionPin: (pin: string) => void;
-  resetPassword: (email: string) => string | null;
-  verifyResetCode: (email: string, code: string) => boolean;
-  completePasswordReset: (email: string, newPassword: string) => boolean;
+  resetPassword: (email: string) => Promise<boolean>;
 }
 
 export interface RegisterData {
@@ -42,86 +45,110 @@ export interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const MOCK_USERS: (User & { password: string })[] = [
-  {
-    id: "1",
-    firstName: "Smith",
-    lastName: "Johnson",
-    email: "smith@svb.com",
-    phone: "+1 (555) 123-4567",
-    password: "Password123!",
-    country: "United States",
-    language: "English",
-    accountNumber: "4076612345",
-    balance: 832000,
-    accountStatus: "Active",
-  },
-];
-
-// Store reset codes
-const resetCodes: Record<string, string> = {};
+async function fetchProfile(userId: string): Promise<User | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    email: data.email,
+    phone: data.phone || "",
+    country: data.country || "",
+    language: data.language || "English",
+    accountNumber: data.account_number,
+    balance: Number(data.balance),
+    accountStatus: (data.account_status as "Active" | "Inactive") || "Active",
+    avatar: data.avatar_url || undefined,
+    pin: data.pin || undefined,
+  };
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = sessionStorage.getItem("svb_user") || localStorage.getItem("svb_user");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const persistUser = (userData: User, remember?: boolean) => {
-    const existing = localStorage.getItem("svb_user");
-    if (remember || existing) {
-      localStorage.setItem("svb_user", JSON.stringify(userData));
-    } else {
-      sessionStorage.setItem("svb_user", JSON.stringify(userData));
-    }
-  };
-
-  const login = useCallback(async (email: string, password: string, remember = false) => {
-    const found = MOCK_USERS.find((u) => u.email === email && u.password === password);
-    if (found) {
-      const { password: _, ...userData } = found;
-      setUser(userData);
-      if (remember) {
-        localStorage.setItem("svb_user", JSON.stringify(userData));
+  useEffect(() => {
+    // Listen for auth changes FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
       } else {
-        sessionStorage.setItem("svb_user", JSON.stringify(userData));
+        setUser(null);
       }
-      return true;
+      setLoading(false);
+    });
+
+    // Then check existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message.includes("Email not confirmed")) {
+        return { success: false, error: "Please verify your email before signing in. Check your inbox for the verification link." };
+      }
+      return { success: false, error: error.message };
     }
-    return false;
+    return { success: true };
   }, []);
 
-  const register = useCallback(async (data: RegisterData) => {
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      firstName: data.firstName,
-      lastName: data.lastName,
+  const register = useCallback(async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
+    const { error } = await supabase.auth.signUp({
       email: data.email,
-      phone: data.phone || "",
-      country: data.country,
-      language: data.language,
-      accountNumber: `407${Math.floor(1000000 + Math.random() * 9000000)}`,
-      balance: 0,
-      accountStatus: "Active",
-    };
-    MOCK_USERS.push({ ...newUser, password: data.password });
-    setUser(newUser);
-    sessionStorage.setItem("svb_user", JSON.stringify(newUser));
-    return true;
+      password: data.password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone || "",
+          country: data.country,
+          language: data.language,
+        },
+      },
+    });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
   }, []);
 
-  const logout = useCallback(() => {
+  const verifyOtp = useCallback(async (email: string, token: string): Promise<{ success: boolean; error?: string }> => {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  }, []);
+
+  const resendVerification = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  }, []);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    sessionStorage.removeItem("svb_user");
-    localStorage.removeItem("svb_user");
   }, []);
 
   const updateAvatar = useCallback((dataUrl: string) => {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, avatar: dataUrl };
-      sessionStorage.setItem("svb_user", JSON.stringify(updated));
-      localStorage.setItem("svb_user", JSON.stringify(updated));
+      // Persist to DB
+      supabase.from("profiles").update({ avatar_url: dataUrl }).eq("id", prev.id).then();
       return updated;
     });
   }, []);
@@ -130,55 +157,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...updates };
-      sessionStorage.setItem("svb_user", JSON.stringify(updated));
-      localStorage.setItem("svb_user", JSON.stringify(updated));
+      // Map to DB columns
+      const dbUpdates: Record<string, any> = {};
+      if (updates.firstName !== undefined) dbUpdates.first_name = updates.firstName;
+      if (updates.lastName !== undefined) dbUpdates.last_name = updates.lastName;
+      if (updates.email !== undefined) dbUpdates.email = updates.email;
+      if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+      if (updates.country !== undefined) dbUpdates.country = updates.country;
+      if (updates.language !== undefined) dbUpdates.language = updates.language;
+      if (Object.keys(dbUpdates).length > 0) {
+        supabase.from("profiles").update(dbUpdates).eq("id", prev.id).then();
+      }
       return updated;
     });
   }, []);
 
-  const updatePassword = useCallback((oldPassword: string, newPassword: string): boolean => {
-    if (!user) return false;
-    const found = MOCK_USERS.find(u => u.id === user.id);
-    if (!found || found.password !== oldPassword) return false;
-    found.password = newPassword;
-    return true;
-  }, [user]);
+  const updatePassword = useCallback(async (_oldPassword: string, newPassword: string): Promise<boolean> => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return !error;
+  }, []);
 
   const setTransactionPin = useCallback((pin: string) => {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, pin };
-      sessionStorage.setItem("svb_user", JSON.stringify(updated));
-      localStorage.setItem("svb_user", JSON.stringify(updated));
+      supabase.from("profiles").update({ pin }).eq("id", prev.id).then();
       return updated;
     });
   }, []);
 
-  const resetPassword = useCallback((email: string): string | null => {
-    const found = MOCK_USERS.find(u => u.email === email);
-    if (!found) return null;
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    resetCodes[email] = code;
-    return code;
-  }, []);
-
-  const verifyResetCode = useCallback((email: string, code: string): boolean => {
-    return resetCodes[email] === code;
-  }, []);
-
-  const completePasswordReset = useCallback((email: string, newPassword: string): boolean => {
-    const found = MOCK_USERS.find(u => u.email === email);
-    if (!found) return false;
-    found.password = newPassword;
-    delete resetCodes[email];
-    return true;
+  const resetPassword = useCallback(async (email: string): Promise<boolean> => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return !error;
   }, []);
 
   return (
     <AuthContext.Provider value={{
-      user, isAuthenticated: !!user, login, register, logout,
-      updateAvatar, updateUser, updatePassword, setTransactionPin,
-      resetPassword, verifyResetCode, completePasswordReset,
+      user, isAuthenticated: !!user, loading, login, register, verifyOtp, resendVerification,
+      logout, updateAvatar, updateUser, updatePassword, setTransactionPin, resetPassword,
     }}>
       {children}
     </AuthContext.Provider>
