@@ -4,9 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, UserPlus, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, UserPlus, ShieldCheck, Mail } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
-
 import { COUNTRY_LIST } from "@/data/countries";
 
 const LANGUAGES = [
@@ -16,7 +15,7 @@ const LANGUAGES = [
 ];
 
 const Register = () => {
-  const { register } = useAuth();
+  const { register, verifyOtp, resendVerification } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", password: "", confirmPassword: "", country: "", language: "",
@@ -26,11 +25,11 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Verification code state
+  // Verification state
   const [step, setStep] = useState<"form" | "verify">("form");
-  const [generatedCode, setGeneratedCode] = useState("");
   const [enteredCode, setEnteredCode] = useState("");
   const [verifyError, setVerifyError] = useState("");
+  const [resending, setResending] = useState(false);
 
   const captcha = useMemo(() => {
     const a = Math.floor(Math.random() * 20) + 1;
@@ -56,33 +55,43 @@ const Register = () => {
     setError("");
     const err = validate();
     if (err) { setError(err); return; }
-    // Generate a 6-digit verification code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code);
-    setStep("verify");
-  };
-
-  const handleVerify = async () => {
-    setVerifyError("");
-    if (enteredCode.trim() !== generatedCode) {
-      setVerifyError("Incorrect verification code. Please try again.");
-      return;
-    }
     setLoading(true);
-    const success = await register({
+    const result = await register({
       firstName: form.firstName, lastName: form.lastName, email: form.email,
       password: form.password, country: form.country, language: form.language,
     });
     setLoading(false);
-    if (success) navigate("/dashboard");
-    else setError("Registration failed");
+    if (result.success) {
+      setStep("verify");
+    } else {
+      setError(result.error || "Registration failed");
+    }
   };
 
-  const handleResendCode = () => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code);
-    setEnteredCode("");
+  const handleVerify = async () => {
     setVerifyError("");
+    if (enteredCode.trim().length !== 6) {
+      setVerifyError("Please enter the 6-digit code.");
+      return;
+    }
+    setLoading(true);
+    const result = await verifyOtp(form.email, enteredCode.trim());
+    setLoading(false);
+    if (result.success) {
+      navigate("/dashboard");
+    } else {
+      setVerifyError(result.error || "Incorrect verification code. Please try again.");
+    }
+  };
+
+  const handleResendCode = async () => {
+    setResending(true);
+    setVerifyError("");
+    const result = await resendVerification(form.email);
+    setResending(false);
+    if (!result.success) {
+      setVerifyError(result.error || "Failed to resend code.");
+    }
   };
 
   if (step === "verify") {
@@ -97,17 +106,14 @@ const Register = () => {
           <div className="bg-card rounded-2xl shadow-elevated p-6">
             <div className="flex flex-col items-center mb-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <ShieldCheck size={32} className="text-primary" />
+                <Mail size={32} className="text-primary" />
               </div>
               <p className="text-sm text-muted-foreground text-center">
                 We've sent a 6-digit verification code to <span className="font-medium text-card-foreground">{form.email}</span>
               </p>
-            </div>
-
-            {/* Show the code for demo purposes */}
-            <div className="bg-accent/10 border border-primary/20 rounded-lg p-3 mb-4 text-center">
-              <p className="text-xs text-muted-foreground">Demo: Your verification code is</p>
-              <p className="text-2xl font-bold text-primary tracking-[0.3em] mt-1">{generatedCode}</p>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Please check your inbox (and spam folder) for the verification code.
+              </p>
             </div>
 
             {verifyError && (
@@ -134,8 +140,8 @@ const Register = () => {
               <button onClick={() => setStep("form")} className="text-sm text-muted-foreground hover:text-card-foreground">
                 ← Back
               </button>
-              <button onClick={handleResendCode} className="text-sm text-primary font-medium hover:underline">
-                Resend Code
+              <button onClick={handleResendCode} disabled={resending} className="text-sm text-primary font-medium hover:underline disabled:opacity-50">
+                {resending ? "Sending..." : "Resend Code"}
               </button>
             </div>
           </div>

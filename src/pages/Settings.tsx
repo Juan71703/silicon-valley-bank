@@ -64,11 +64,11 @@ const SettingsPage = () => {
     setActivePanel(null);
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) { toast.error(t("contact.fillAll")); return; }
     if (newPassword !== confirmPassword) { toast.error(t("settings.passwordMismatch")); return; }
     if (newPassword.length < 8) { toast.error(t("settings.passwordTooShort")); return; }
-    const success = updatePassword(oldPassword, newPassword);
+    const success = await updatePassword(oldPassword, newPassword);
     if (success) {
       toast.success(t("settings.passwordChanged"));
       setOldPassword(""); setNewPassword(""); setConfirmPassword("");
@@ -130,7 +130,7 @@ const SettingsPage = () => {
                   <ChevronRight size={16} className="text-muted-foreground" />
                 </button>
               ))}
-              <button onClick={() => { logout(); navigate("/login"); }} className="w-full bg-destructive/10 rounded-xl p-4 flex items-center gap-3 mt-4">
+              <button onClick={async () => { await logout(); navigate("/login"); }} className="w-full bg-destructive/10 rounded-xl p-4 flex items-center gap-3 mt-4">
                 <LogOut size={18} className="text-destructive" />
                 <span className="text-sm font-medium text-destructive">{t("settings.signOut")}</span>
               </button>

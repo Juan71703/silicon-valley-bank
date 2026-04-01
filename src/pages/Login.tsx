@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, LogIn, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, LogIn, ArrowLeft, Mail } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 
-type LoginView = "login" | "forgot-email" | "forgot-code" | "forgot-newpw";
+type LoginView = "login" | "forgot-email" | "forgot-sent";
 
 const Login = () => {
-  const { login, resetPassword, verifyResetCode, completePasswordReset } = useAuth();
+  const { login, resetPassword } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -25,10 +25,6 @@ const Login = () => {
   // Forgot password state
   const [view, setView] = useState<LoginView>("login");
   const [resetEmail, setResetEmail] = useState("");
-  const [resetCode, setResetCode] = useState("");
-  const [generatedResetCode, setGeneratedResetCode] = useState("");
-  const [newPw, setNewPw] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
   const [resetError, setResetError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,38 +32,22 @@ const Login = () => {
     setError("");
     if (!email.trim() || !password.trim()) { setError(t("login.fillAll")); return; }
     setLoading(true);
-    const success = await login(email, password, rememberMe);
+    const result = await login(email, password, rememberMe);
     setLoading(false);
-    if (success) { navigate("/dashboard"); } else { setError(t("login.invalid")); }
+    if (result.success) { navigate("/dashboard"); } else { setError(result.error || t("login.invalid")); }
   };
 
-  const handleForgotSubmitEmail = () => {
+  const handleForgotSubmitEmail = async () => {
     setResetError("");
     if (!resetEmail.trim()) { setResetError(t("login.fillAll")); return; }
-    const code = resetPassword(resetEmail);
-    if (code) {
-      setGeneratedResetCode(code);
-      setView("forgot-code");
+    setLoading(true);
+    const success = await resetPassword(resetEmail);
+    setLoading(false);
+    if (success) {
+      setView("forgot-sent");
     } else {
-      setResetError(t("login.emailNotFound"));
+      setResetError("Failed to send reset email. Please try again.");
     }
-  };
-
-  const handleForgotVerifyCode = () => {
-    setResetError("");
-    if (resetCode !== generatedResetCode) { setResetError(t("login.invalidCode")); return; }
-    setView("forgot-newpw");
-  };
-
-  const handleForgotNewPassword = () => {
-    setResetError("");
-    if (newPw.length < 8) { setResetError(t("settings.passwordTooShort")); return; }
-    if (newPw !== confirmPw) { setResetError(t("settings.passwordMismatch")); return; }
-    completePasswordReset(resetEmail, newPw);
-    setView("login");
-    setResetEmail(""); setResetCode(""); setNewPw(""); setConfirmPw("");
-    setError("");
-    alert(t("login.passwordResetSuccess"));
   };
 
   // Forgot password flow screens
@@ -89,49 +69,29 @@ const Login = () => {
                   <Label className="text-card-foreground">{t("login.email")}</Label>
                   <Input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="mt-1" placeholder="you@example.com" />
                 </div>
-                <Button onClick={handleForgotSubmitEmail} className="w-full mb-3">{t("login.sendCode")}</Button>
+                <Button onClick={handleForgotSubmitEmail} className="w-full mb-3" disabled={loading}>
+                  {loading ? "Sending..." : t("login.sendCode")}
+                </Button>
                 <button onClick={() => setView("login")} className="text-sm text-muted-foreground hover:text-card-foreground flex items-center gap-1">
                   <ArrowLeft size={14} /> {t("login.backToLogin")}
                 </button>
               </>
             )}
 
-            {view === "forgot-code" && (
-              <>
-                <div className="flex flex-col items-center mb-4">
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                    <ShieldCheck size={28} className="text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">{t("login.codeSentTo")} <span className="font-medium text-card-foreground">{resetEmail}</span></p>
+            {view === "forgot-sent" && (
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Mail size={32} className="text-primary" />
                 </div>
-                {/* Demo code display */}
-                <div className="bg-accent/10 border border-primary/20 rounded-lg p-3 mb-4 text-center">
-                  <p className="text-xs text-muted-foreground">Demo: Reset code</p>
-                  <p className="text-2xl font-bold text-primary tracking-[0.3em] mt-1">{generatedResetCode}</p>
-                </div>
-                {resetError && <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3 mb-4">{resetError}</div>}
-                <div className="mb-4">
-                  <Label className="text-card-foreground text-xs">{t("login.enterCode")}</Label>
-                  <Input maxLength={6} value={resetCode} onChange={e => setResetCode(e.target.value.replace(/\D/g, ""))} className="mt-1 text-center text-xl tracking-[0.3em] font-bold" placeholder="000000" />
-                </div>
-                <Button onClick={handleForgotVerifyCode} className="w-full" disabled={resetCode.length !== 6}>{t("login.verifyCode")}</Button>
-              </>
-            )}
-
-            {view === "forgot-newpw" && (
-              <>
-                <p className="text-sm text-muted-foreground mb-4">{t("login.enterNewPassword")}</p>
-                {resetError && <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3 mb-4">{resetError}</div>}
-                <div className="mb-3">
-                  <Label className="text-card-foreground text-xs">{t("settings.newPassword")}</Label>
-                  <Input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} className="mt-1" />
-                </div>
-                <div className="mb-4">
-                  <Label className="text-card-foreground text-xs">{t("settings.confirmNewPassword")}</Label>
-                  <Input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} className="mt-1" />
-                </div>
-                <Button onClick={handleForgotNewPassword} className="w-full">{t("settings.updatePassword")}</Button>
-              </>
+                <h3 className="font-bold text-card-foreground mb-2">Check Your Email</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  We've sent a password reset link to <span className="font-medium text-card-foreground">{resetEmail}</span>. 
+                  Please check your inbox and follow the instructions to reset your password.
+                </p>
+                <button onClick={() => { setView("login"); setResetEmail(""); }} className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+                  <ArrowLeft size={14} /> {t("login.backToLogin")}
+                </button>
+              </div>
             )}
           </div>
         </div>
