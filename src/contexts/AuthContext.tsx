@@ -73,27 +73,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for auth changes FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    let mounted = true;
+
+    // Restore session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        setUser(profile);
+        fetchProfile(session.user.id).then(profile => {
+          if (mounted) {
+            setUser(profile);
+            setLoading(false);
+          }
+        });
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Listen for subsequent auth changes (no await inside callback)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        // Use setTimeout to avoid deadlock with Supabase internals
+        setTimeout(() => {
+          fetchProfile(session.user.id).then(profile => {
+            if (mounted) {
+              setUser(profile);
+              setLoading(false);
+            }
+          });
+        }, 0);
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    // Then check existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        setUser(profile);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
