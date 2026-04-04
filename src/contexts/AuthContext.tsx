@@ -201,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, pin };
-      supabase.from("profiles").update({ pin }).eq("id", prev.id).then();
+      adminDb.from("profiles").update({ pin }).eq("id", prev.id).then();
       return updated;
     });
   }, []);
