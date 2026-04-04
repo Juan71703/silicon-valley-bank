@@ -186,7 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updates.country !== undefined) dbUpdates.country = updates.country;
       if (updates.language !== undefined) dbUpdates.language = updates.language;
       if (Object.keys(dbUpdates).length > 0) {
-        supabase.from("profiles").update(dbUpdates).eq("id", prev.id).then();
+        adminDb.from("profiles").update(dbUpdates).eq("id", prev.id).then();
       }
       return updated;
     });
