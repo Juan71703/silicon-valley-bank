@@ -47,7 +47,7 @@ export interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function fetchProfile(userId: string): Promise<User | null> {
-  const { data, error } = await supabase
+  const { data, error } = await adminDb
     .from("profiles")
     .select("*")
     .eq("id", userId)
