@@ -168,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!prev) return prev;
       const updated = { ...prev, avatar: dataUrl };
       // Persist to DB
-      supabase.from("profiles").update({ avatar_url: dataUrl }).eq("id", prev.id).then();
+      adminDb.from("profiles").update({ avatar_url: dataUrl }).eq("id", prev.id).then();
       return updated;
     });
   }, []);
