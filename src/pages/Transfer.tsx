@@ -19,6 +19,7 @@ const Transfer = () => {
   const [step, setStep] = useState<TransferStep>("form");
   const [country, setCountry] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [bankName, setBankName] = useState("");
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");

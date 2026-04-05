@@ -123,12 +123,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       if (error.message.includes("Email not confirmed")) {
         return { success: false, error: "Please verify your email before signing in. Check your inbox for the verification link." };
       }
       return { success: false, error: error.message };
+    }
+    // Eagerly set profile so navigation is instant
+    if (data.user) {
+      const profile = await fetchProfile(data.user.id);
+      if (profile) {
+        setUser(profile);
+        setLoading(false);
+      }
     }
     return { success: true };
   }, []);
