@@ -47,12 +47,11 @@ export interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function fetchProfile(userId: string): Promise<User | null> {
-  // Use the primary client (which carries the auth session) so RLS passes
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
   if (error || !data) return null;
   return {
     id: data.id,
@@ -83,7 +82,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         fetchProfile(session.user.id).then(profile => {
           if (mounted) {
-            setUser(profile);
+            if (profile) {
+              setUser(profile);
+            } else {
+              // Profile missing (deleted user) — clear stale session
+              supabase.auth.signOut();
+              setUser(null);
+            }
             setLoading(false);
           }
         });
@@ -92,11 +97,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    // Listen for subsequent auth changes (no await inside callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      if (session?.user) {
-        // Use setTimeout to avoid deadlock with Supabase internals
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
         setTimeout(() => {
           fetchProfile(session.user.id).then(profile => {
             if (mounted) {
@@ -105,9 +113,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           });
         }, 0);
-      } else {
-        setUser(null);
-        setLoading(false);
       }
     });
 
