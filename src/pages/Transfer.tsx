@@ -24,8 +24,7 @@ const Transfer = () => {
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [pin, setPin] = useState("");
-  const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [itcCode, setItcCode] = useState("");
 
   useEffect(() => { if (!user) navigate("/login"); }, [user, navigate]);
   if (!user) return null;
