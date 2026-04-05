@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { COUNTRY_LIST, getCountryBankingFields } from "@/data/countries";
 
-type TransferStep = "form" | "confirm" | "pin" | "otp" | "complete";
+type TransferStep = "form" | "confirm" | "pin" | "itc" | "complete";
 
 const Transfer = () => {
   const { user } = useAuth();
