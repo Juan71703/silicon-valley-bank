@@ -19,6 +19,7 @@ const Transfer = () => {
   const [step, setStep] = useState<TransferStep>("form");
   const [country, setCountry] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [bankName, setBankName] = useState("");
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -37,11 +38,12 @@ const Transfer = () => {
   const handleCountryChange = (val: string) => {
     setCountry(val);
     setDynamicFields({});
+    setBankName("");
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!country || !accountName.trim() || !amount.trim() || !reason.trim()) {
+    if (!country || !accountName.trim() || !bankName.trim() || !amount.trim() || !reason.trim()) {
       toast.error(t("transfer.fillFields")); return;
     }
     for (const field of bankingFields) {
@@ -85,7 +87,7 @@ const Transfer = () => {
 
   const handleReset = () => {
     setStep("form");
-    setCountry(""); setAccountName(""); setDynamicFields({}); setAmount(""); setReason(""); setPin(""); setOtp("");
+    setCountry(""); setAccountName(""); setBankName(""); setDynamicFields({}); setAmount(""); setReason(""); setPin(""); setOtp("");
   };
 
   return (
@@ -112,6 +114,10 @@ const Transfer = () => {
               <div>
                 <Label className="text-card-foreground">{t("transfer.recipient")}</Label>
                 <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder={t("transfer.recipientPlaceholder")} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-card-foreground">{t("transfer.bankName") || "Bank Name"}</Label>
+                <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. Chase Bank, Barclays" className="mt-1" />
               </div>
               {bankingFields.map((field) => (
                 <div key={field.key}>
@@ -145,6 +151,7 @@ const Transfer = () => {
             <div className="space-y-2 bg-muted rounded-xl p-4">
               <DetailRow label={t("transfer.recipient")} value={accountName} />
               <DetailRow label={t("transfer.destCountry")} value={country} />
+              <DetailRow label={t("transfer.bankName") || "Bank Name"} value={bankName} />
               {bankingFields.map(f => (
                 <DetailRow key={f.key} label={f.label} value={dynamicFields[f.key] || ""} />
               ))}
