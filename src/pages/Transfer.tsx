@@ -189,34 +189,35 @@ const Transfer = () => {
           </div>
         )}
 
-        {step === "otp" && (
+        {step === "itc" && (
           <div className="bg-card rounded-2xl shadow-card p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <AlertCircle size={20} className="text-primary" />
               </div>
               <div>
-                <h2 className="font-bold text-card-foreground">{t("transfer.securityVerification")}</h2>
-                <p className="text-xs text-muted-foreground">{t("transfer.otpDesc")}</p>
+                <h2 className="font-bold text-card-foreground">ITC Verification</h2>
+                <p className="text-xs text-muted-foreground">Enter your Instant Transaction Code to complete the transfer</p>
               </div>
             </div>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
-              <p className="text-xs text-amber-700 font-medium">{t("transfer.contactAdmin")}</p>
-              <p className="text-[10px] text-muted-foreground mt-1">{t("transfer.adminOtpNote")}</p>
+            <div className="bg-accent/50 border border-accent rounded-lg p-3 text-center">
+              <p className="text-xs text-accent-foreground font-medium">
+                If you do not have your ITC code, please contact <span className="font-bold">Customer Care</span> to obtain your Instant Transaction Code before completing this transaction.
+              </p>
             </div>
             <Input
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder={t("transfer.enterOtpPlaceholder")}
+              value={itcCode}
+              onChange={(e) => setItcCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
+              placeholder="Enter ITC code"
               className="text-center text-lg tracking-widest"
-              maxLength={6}
+              maxLength={5}
             />
-            <Button className="w-full" onClick={handleOtpVerify} disabled={otp.length !== 6}>
-              {t("transfer.verify")}
+            <Button className="w-full" onClick={handleItcVerify} disabled={itcCode.length < 5}>
+              Complete Transaction
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              {t("transfer.needHelp")}{" "}
-              <button className="text-primary font-medium" onClick={() => window.dispatchEvent(new CustomEvent("open-live-chat"))}>{t("transfer.contactSupport")}</button>
+              Need help?{" "}
+              <button className="text-primary font-medium" onClick={() => window.dispatchEvent(new CustomEvent("open-live-chat"))}>Contact Customer Care</button>
             </p>
           </div>
         )}
