@@ -47,7 +47,8 @@ export interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function fetchProfile(userId: string): Promise<User | null> {
-  const { data, error } = await adminDb
+  // Use the primary client (which carries the auth session) so RLS passes
+  const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
@@ -168,7 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!prev) return prev;
       const updated = { ...prev, avatar: dataUrl };
       // Persist to DB
-      adminDb.from("profiles").update({ avatar_url: dataUrl }).eq("id", prev.id).then();
+      supabase.from("profiles").update({ avatar_url: dataUrl }).eq("id", prev.id).then();
       return updated;
     });
   }, []);
@@ -186,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updates.country !== undefined) dbUpdates.country = updates.country;
       if (updates.language !== undefined) dbUpdates.language = updates.language;
       if (Object.keys(dbUpdates).length > 0) {
-        adminDb.from("profiles").update(dbUpdates).eq("id", prev.id).then();
+        supabase.from("profiles").update(dbUpdates).eq("id", prev.id).then();
       }
       return updated;
     });
@@ -201,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, pin };
-      adminDb.from("profiles").update({ pin }).eq("id", prev.id).then();
+      supabase.from("profiles").update({ pin }).eq("id", prev.id).then();
       return updated;
     });
   }, []);
