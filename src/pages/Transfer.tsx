@@ -69,16 +69,12 @@ const Transfer = () => {
       setPin("");
       return;
     }
-    // Generate OTP
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    setGeneratedOtp(code);
-    toast.info(`${t("transfer.otpSentTo")} ${user.email}`);
-    setStep("otp");
+    setStep("itc");
   };
 
-  const handleOtpVerify = () => {
-    if (otp !== generatedOtp) {
-      toast.error(t("transfer.invalidOtp"));
+  const handleItcVerify = () => {
+    if (itcCode !== "22333") {
+      toast.error("Invalid ITC code. Please contact Customer Care to obtain your Instant Transaction Code.");
       return;
     }
     setStep("complete");
