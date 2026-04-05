@@ -82,7 +82,7 @@ const Transfer = () => {
 
   const handleReset = () => {
     setStep("form");
-    setCountry(""); setAccountName(""); setBankName(""); setDynamicFields({}); setAmount(""); setReason(""); setPin(""); setOtp("");
+    setCountry(""); setAccountName(""); setBankName(""); setDynamicFields({}); setAmount(""); setReason(""); setPin(""); setItcCode("");
   };
 
   return (
