@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, LANGUAGES } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, LogIn, ArrowLeft, Mail } from "lucide-react";
+import { Eye, EyeOff, LogIn, ArrowLeft, Mail, Globe } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
 
 type LoginView = "login" | "forgot-email" | "forgot-sent";
 
 const Login = () => {
   const { login, resetPassword } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
+  const [showLangMenu, setShowLangMenu] = useState(false);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -100,7 +101,31 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gradient-primary px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gradient-primary px-4 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-50">
+        <button
+          onClick={() => setShowLangMenu(!showLangMenu)}
+          className="flex items-center gap-1.5 bg-card/20 backdrop-blur-sm text-primary-foreground rounded-full px-3 py-2 text-sm hover:bg-card/30 transition-colors"
+        >
+          <Globe size={16} />
+          {LANGUAGES.find(l => l.code === lang)?.label || "English"}
+        </button>
+        {showLangMenu && (
+          <div className="absolute right-0 mt-1 bg-card rounded-xl shadow-elevated border border-border py-1 min-w-[140px] animate-fade-in">
+            {LANGUAGES.map(l => (
+              <button
+                key={l.code}
+                onClick={() => { setLang(l.code); setShowLangMenu(false); }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${lang === l.code ? "text-primary font-medium" : "text-card-foreground"}`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex flex-col items-center mb-8">
           <img src={svbLogo} alt="Silicon Valley Bank" width={64} height={64} className="mb-3" />

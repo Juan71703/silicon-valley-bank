@@ -1,4 +1,4 @@
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -48,11 +48,14 @@ const LiveChatButton = () => {
               👋 Hi there! How can we help you today? Type your message below.
             </p>
           </div>
-          <div className="p-3 border-t border-border">
+          <div className="p-3 border-t border-border flex gap-2">
             <input
               placeholder="Type a message..."
-              className="w-full bg-muted rounded-full px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-muted rounded-full px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
             />
+            <button className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-primary-foreground shrink-0 hover:scale-105 transition-transform">
+              <Send size={16} />
+            </button>
           </div>
         </div>
       )}

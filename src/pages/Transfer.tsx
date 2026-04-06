@@ -111,7 +111,7 @@ const Transfer = () => {
                 <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder={t("transfer.recipientPlaceholder")} className="mt-1" />
               </div>
               <div>
-                <Label className="text-card-foreground">{t("transfer.bankName") || "Bank Name"}</Label>
+                <Label className="text-card-foreground">Bank Name</Label>
                 <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. Chase Bank, Barclays" className="mt-1" />
               </div>
               {bankingFields.map((field) => (
@@ -146,7 +146,7 @@ const Transfer = () => {
             <div className="space-y-2 bg-muted rounded-xl p-4">
               <DetailRow label={t("transfer.recipient")} value={accountName} />
               <DetailRow label={t("transfer.destCountry")} value={country} />
-              <DetailRow label={t("transfer.bankName") || "Bank Name"} value={bankName} />
+              <DetailRow label="Bank Name" value={bankName} />
               {bankingFields.map(f => (
                 <DetailRow key={f.key} label={f.label} value={dynamicFields[f.key] || ""} />
               ))}
