@@ -17,6 +17,7 @@ import SettingsPage from "./pages/Settings";
 import Contact from "./pages/Contact";
 import Deposit from "./pages/Deposit";
 import NotFound from "./pages/NotFound";
+import TawkToWidget from "./components/TawkToWidget";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <TawkToWidget />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Navigate to="/login" replace />} />
