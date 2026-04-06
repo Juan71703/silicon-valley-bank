@@ -28,6 +28,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <TawkToWidget />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Navigate to="/login" replace />} />
