@@ -13,7 +13,7 @@ type LoginView = "login" | "forgot-email" | "forgot-sent";
 
 const Login = () => {
   const { login, resetPassword } = useAuth();
-  const { t, language, setLanguage } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
   const [showLangMenu, setShowLangMenu] = useState(false);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
