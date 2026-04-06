@@ -2,7 +2,7 @@ import { MessageCircle, X, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const JIVOCHAT_WIDGET_ID = ""; // Add your JivoChat widget ID here
+const JIVOCHAT_WIDGET_ID = "y0ZoHfZuvA";
 
 const LiveChatButton = () => {
   const [open, setOpen] = useState(false);
@@ -59,7 +59,7 @@ const LiveChatButton = () => {
           </div>
         </div>
       )}
-      <div className="fixed bottom-20 right-4 z-50 flex items-center gap-2">
+      <div className="fixed bottom-28 right-4 z-50 flex items-center gap-2">
         {!open && (
           <div className="bg-card shadow-elevated rounded-full px-3 py-2 border border-border animate-fade-in">
             <p className="text-xs font-medium text-card-foreground whitespace-nowrap">{t("chat.help")}</p>
