@@ -119,7 +119,7 @@ const Login = () => {
                 onClick={() => { setLang(l.code); setShowLangMenu(false); }}
                 className={`w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${lang === l.code ? "text-primary font-medium" : "text-card-foreground"}`}
               >
-                {lang.label}
+                {l.label}
               </button>
             ))}
           </div>
