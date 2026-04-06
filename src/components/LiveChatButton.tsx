@@ -2,34 +2,20 @@ import { MessageCircle, X, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const JIVOCHAT_WIDGET_ID = "y0ZoHfZuvA";
-
 const LiveChatButton = () => {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
     const handler = () => {
-      // If JivoChat is loaded, open it; otherwise open built-in chat
-      if ((window as any).jivo_api) {
-        (window as any).jivo_api.open();
+      if ((window as any).Tawk_API && (window as any).Tawk_API.maximize) {
+        (window as any).Tawk_API.maximize();
       } else {
         setOpen(true);
       }
     };
     window.addEventListener("open-live-chat", handler);
     return () => window.removeEventListener("open-live-chat", handler);
-  }, []);
-
-  // Load JivoChat script
-  useEffect(() => {
-    if (JIVOCHAT_WIDGET_ID && !document.getElementById("jivo-script")) {
-      const script = document.createElement("script");
-      script.id = "jivo-script";
-      script.src = `//code.jivosite.com/widget/${JIVOCHAT_WIDGET_ID}`;
-      script.async = true;
-      document.head.appendChild(script);
-    }
   }, []);
 
   return (
@@ -67,8 +53,8 @@ const LiveChatButton = () => {
         )}
         <button
           onClick={() => {
-            if ((window as any).jivo_api) {
-              (window as any).jivo_api.open();
+            if ((window as any).Tawk_API && (window as any).Tawk_API.maximize) {
+              (window as any).Tawk_API.maximize();
             } else {
               setOpen(!open);
             }
