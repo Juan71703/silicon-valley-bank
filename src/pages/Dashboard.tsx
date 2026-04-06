@@ -8,7 +8,7 @@ import {
   ChevronRight, Plus, Globe, MessageCircle, ArrowDownLeft
 } from "lucide-react";
 import svbLogo from "@/assets/svb-logo.png";
-import LiveChatButton from "@/components/LiveChatButton";
+
 
 const MOCK_TRANSACTIONS = [
   { id: "1", type: "credit" as const, desc: "Salary Deposit", amount: 5200, date: "2026-03-27", status: "Completed" },
@@ -318,7 +318,7 @@ const Dashboard = () => {
           <NavItem icon={User} label={t("nav.profile")} onClick={() => navigate("/settings")} />
         </div>
       </nav>
-      <LiveChatButton />
+      
     </div>
   );
 };
