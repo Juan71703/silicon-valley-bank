@@ -109,15 +109,15 @@ const Login = () => {
           className="flex items-center gap-1.5 bg-card/20 backdrop-blur-sm text-primary-foreground rounded-full px-3 py-2 text-sm hover:bg-card/30 transition-colors"
         >
           <Globe size={16} />
-          {LANGUAGES.find(l => l.code === language)?.label || "English"}
+          {LANGUAGES.find(l => l.code === lang)?.label || "English"}
         </button>
         {showLangMenu && (
           <div className="absolute right-0 mt-1 bg-card rounded-xl shadow-elevated border border-border py-1 min-w-[140px] animate-fade-in">
-            {LANGUAGES.map(lang => (
+            {LANGUAGES.map(l => (
               <button
-                key={lang.code}
-                onClick={() => { setLanguage(lang.code); setShowLangMenu(false); }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${language === lang.code ? "text-primary font-medium" : "text-card-foreground"}`}
+                key={l.code}
+                onClick={() => { setLang(l.code); setShowLangMenu(false); }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${lang === l.code ? "text-primary font-medium" : "text-card-foreground"}`}
               >
                 {lang.label}
               </button>
