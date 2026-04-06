@@ -2,7 +2,7 @@ import { MessageCircle, X, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const JIVOCHAT_WIDGET_ID = ""; // Add your JivoChat widget ID here
+const JIVOCHAT_WIDGET_ID = "y0ZoHfZuvA";
 
 const LiveChatButton = () => {
   const [open, setOpen] = useState(false);
